@@ -109,6 +109,7 @@ function handleAudioPlayback(dist){
                 sounds[1].fade(0,0.9,1500,speaking);
             }
         }
+        document.querySelector('.out-of-range').style.display="none";
     } else if (dist > target.talkThreshold && sounds[1].playing(speaking)){
         sounds[1].fade(0.9,0,1500,speaking).once('fade',function(){
             sounds[1].pause(speaking);
@@ -295,11 +296,15 @@ function handleOrientation(event){
     const gaugeWrapper = document.getElementById('gauge-wrapper');
     const camera = document.getElementById('camera');
     const tilt = document.querySelector('.tilt');
+    const outOfRange = document.querySelector('.out-of-range');
+
+    handleOutOfRange()
 
     if(screen.orientation.type === 'portrait-primary'){
         gaugeWrapper.style.display="block"
         camera.style.display="none"
         tilt.style.display="none"
+        outOfRange.style.display="none"
     }else{
         gaugeWrapper.style.display="none"
         camera.style.display="block"
@@ -342,6 +347,9 @@ function getLocation() {
 
         //decide whether to play or stop current audio tracks
         handleAudioPlayback(distance);
+
+        //message to indicate user is out of range on AR module
+        handleOutOfRange();
     }
 
     function showError(err){
@@ -351,6 +359,15 @@ function getLocation() {
         if (errorCount > 10){
             window.location.href = "/profile";
         }
+    }
+}
+
+function handleOutOfRange(){
+    const outOfRange = document.querySelector('.out-of-range');
+    if(distance > target.talkThreshold && deviceOn){
+        outOfRange.style.display="block";
+    }else{
+        outOfRange.style.display="none";
     }
 }
 //++
@@ -471,9 +488,11 @@ function handleARvisibility(){
 //++
 function markerListener(){
     const nextEvent = document.querySelector(".next-event");
+    const spectralRangeTooFar = document.querySelector('p.out-of-range');
     const tilt = document.querySelector('.tilt');
     if (chapter === 5) nextEvent.textContent = 'End Story';
     nextEvent.classList.remove("hide");
+    spectralRangeTooFar.innerHTML = '';
     tilt.style.display="block";
     if (chapter == 5){
         ending = sounds[2].play();
